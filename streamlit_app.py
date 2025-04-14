@@ -538,4 +538,8 @@ if selected_features:
         
         st.markdown(f"""
         <div class='insight-text'>
-            <strong>
+        <strong>Forecast Insight:</strong><br>
+    The average forecasted volume is {avg_forecast:.1f}, which represents a {percent_change:.1f}% change 
+    from the historical average of {avg_historical:.1f}.
+</div>
+""", unsafe_allow_html=True)
