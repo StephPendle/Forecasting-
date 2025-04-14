@@ -521,5 +521,33 @@ if selected_features:
     future_dates = [last_date + (i+1)*date_increment for i in range(forecast_periods)]
     
     # Create forecast button
-    if st.button("Generate Forecast"):
+if st.button("Generate Forecast"):
+    # This indented block should contain code that runs when the button is clicked
+    # Train model on all data
+    model_data = pd.get_dummies(forecast_data, columns=cat_features, drop_first=False)
+    X_all = model_data[X_cols]
+    y_all = model_data[volume_col]
+    
+    model.fit(X_all, y_all)
+    
+    # For simplicity, we'll use the last row's features for future predictions
+    last_features = X_all.iloc[-1:].copy()
+    future_X = pd.concat([last_features] * forecast_periods, ignore_index=True)
+    
+    # Generate predictions
+    future_preds = model.predict(future_X)
+    
+    # Create forecast dataframe
+    forecast_df = pd.DataFrame({
+        'Date': future_dates,
+        'Forecast': future_preds
+    })
+    
+    # Display forecast
+    st.subheader("Forecast Results")
+    st.dataframe(forecast_df)
+    
+    # Additional visualization code...
+
+   
 
