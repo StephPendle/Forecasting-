@@ -519,3 +519,7 @@ if selected_features:
         date_increment = timedelta(days=365)
     
     future_dates = [last_date + (i+1)*date_increment for i in range(forecast_periods)]
+    
+    # Create forecast button
+    if st.button("Generate Forecast"):
+
