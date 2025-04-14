@@ -443,3 +443,99 @@ if selected_features:
         <div class='insight-text'>
             <strong>Feature Impact Insight:</strong><br>
             The chart shows which factors have the greatest influence on product volume.
+            Understanding these drivers can help optimize marketing, inventory, and business strategies.
+        </div>
+        """, unsafe_allow_html=True)
+
+# Forecasting section
+if selected_features:
+    st.markdown('<p class="sub-header">Volume Forecast</p>', unsafe_allow_html=True)
+    
+    # Prepare data for forecasting
+    forecast_data = filtered_data.copy()
+    
+    # Create a date range for future predictions
+    last_date = forecast_data[date_col].max()
+    
+    # Map granularity to timedelta
+    if time_granularity == "Daily":
+        date_increment = timedelta(days=1)
+    elif time_granularity == "Weekly":
+        date_increment = timedelta(weeks=1)
+    elif time_granularity == "Monthly":
+        date_increment = timedelta(days=30)
+    elif time_granularity == "Quarterly":
+        date_increment = timedelta(days=90)
+    else:  # Yearly
+        date_increment = timedelta(days=365)
+    
+    future_dates = [last_date + (i+1)*date_increment for i in range(forecast_periods)]
+    
+    # Create forecast button
+    if st.button("Generate Forecast"):
+        # Train model on all data
+        model_data = pd.get_dummies(forecast_data, columns=cat_features, drop_first=False)
+        X_all = model_data[X_cols]
+        y_all = model_data[volume_col]
+        
+        model.fit(X_all, y_all)
+        
+        # For simplicity, we'll use the last row's features for future predictions
+        # In a real application, you might want to use time series forecasting for the features too
+        last_features = X_all.iloc[-1:].copy()
+        future_X = pd.concat([last_features] * forecast_periods, ignore_index=True)
+        
+        # Generate predictions
+        future_preds = model.predict(future_X)
+        
+        # Create forecast dataframe
+        forecast_df = pd.DataFrame({
+            'Date': future_dates,
+            'Forecast': future_preds
+        })
+        
+        # Display forecast
+        st.subheader("Forecast Results")
+        st.dataframe(forecast_df)
+        
+        # Plot historical data and forecast
+        fig = go.Figure()
+        
+        # Add historical data
+        for product in selected_products:
+            product_data = agg_data[agg_data[product_col] == product]
+            fig.add_trace(go.Scatter(
+                x=product_data[date_col], 
+                y=product_data[volume_col],
+                mode='lines+markers',
+                name=f'Historical - {product}'
+            ))
+        
+        # Add forecast
+        fig.add_trace(go.Scatter(
+            x=forecast_df['Date'],
+            y=forecast_df['Forecast'],
+            mode='lines+markers',
+            line=dict(dash='dash', color='red'),
+            name='Forecast'
+        ))
+        
+        fig.update_layout(
+            title="Historical Volume and Forecast",
+            xaxis_title="Date",
+            yaxis_title="Volume",
+            legend_title="Series",
+            template="plotly_white",
+            height=500
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Forecast insights
+        avg_historical = agg_data[volume_col].mean()
+        avg_forecast = forecast_df['Forecast'].mean()
+        percent_change = ((avg_forecast / avg_historical) - 1) * 100
+        
+        st.markdown(f"""
+        <div class='insight-text'>
+            <strong>
