@@ -442,9 +442,5 @@ if selected_features:
         st.markdown("""
         <div class='insight-text'>
             <strong>Feature Impact Insight:</strong><br>
-            The chart shows which factors have the greatest influence on product volume. 
-            Understanding these drivers can help optimize marketing, inventory, and business strategies.
-        </div>
-        """, unsafe_allow_html=True)
+            The chart shows which factors have the greatest influence on product volume.
 
-# Forecasting
